@@ -1,0 +1,15 @@
+[project]
+name = "novel-worldbuilding-docs"
+version = "0.1.0"
+description = "Worldbuilding story-bible site for the novel (MkDocs)."
+requires-python = ">=3.9"
+dependencies = [
+    "mkdocs-material>=9.5",
+]
+
+# This project file only manages the docs site (docs/). The manuscript itself
+# is LaTeX in main/ and needs no Python. Manage the env with uv:
+#
+#   uv sync                  # create .venv and install mkdocs-material
+#   uv run mkdocs serve      # live preview at http://localhost:8000
+#   uv run mkdocs build      # static site into site/

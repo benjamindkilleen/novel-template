@@ -1,0 +1,88 @@
+\usepackage{setspace}
+\usepackage{hyperref}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\graphicspath{ {images/} }
+\usepackage{float}
+\usepackage{chemformula}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{lipsum}
+
+% Make todos
+\newcommand{\todo}[1]{{\color{red} [TODO: #1]}}
+
+% For writing summaries
+\definecolor{softblue}{RGB}{100, 130, 200}
+\newenvironment{summary}
+  {\newpage\begingroup\color{softblue}\noindent[} % Begin code: set color and start group
+  {]\endgroup\newpage}
+
+% Scene delimiters
+\titleformat{\section}
+  {\centering\normalsize}
+  {} % No section number prefix
+  {0em} % Spacing between prefix and title
+  {}
+\newcommand{\scene}{\section*{\#}}
+
+% \hfuzz=5.002pt
+% \makeatletter
+% \renewcommand{\maketitle}{%
+%   {\noindent \@date \par}%
+%   \vskip 5em
+%   \begin{center}%
+%     {\@title \par}%
+%     \vskip 1em
+%     {\@author \par}
+%     \vskip 1em
+%   \end{center}%
+%   \par
+% }
+% \makeatother
+
+\title{TITLE}
+\author{Benjamin Killeen}
+\date{Benjamin Killeen\\
+  555 55th St, Apt 5\\
+  Fiftytown, Fiftystate 55555\\
+  +1 (555) 555-5555 \\
+  \href{mailto:fiftyfivefifyfive@gmail.com}{fiftyfivefifyfive@gmail.com}
+}
+
+% Custom headers/footers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf[HLE,HRO]{KILLEEN}
+\fancyhf[HRE,HLO]{TITLE}
+\setlength{\headheight}{14.5pt}
+
+\begin{document}
+
+\frontmatter{}
+\singlespacing{}
+\maketitle
+
+% \tableofcontents
+
+\mainspacing{}
+
+\mainmatter{}
+
+% Oganize your novel parts into different files.
+% Some people have a different file for every chapter.
+% I prefer three or four "parts" with 10 - 15 chapters in each.
+% Use \input (not \include) otherwise pandoc breaks.
+\input{parts/part1}
+
+% \backmatter
+% Backmatter
+% \input{parts/acknowledgments}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: "./main.tex"
+%%% TeX-command-extra-options: "-shell-escape --enable-write18 --synctex=1"
+%%% End:

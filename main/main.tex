@@ -1,0 +1,28 @@
+\RequirePackage{ifthen}
+\ifthenelse{\equal{\jobname}{\detokenize{mobile}}}
+{
+  \documentclass[12pt,a6paper]{book}
+  \usepackage[margin=5mm]{geometry}
+}
+{
+  \documentclass[12pt]{book}
+  \usepackage[margin=1in]{geometry}
+}
+
+\ifthenelse{\equal{\jobname}{\detokenize{mobile}}}
+{
+  \newcommand{\mainspacing}{\singlespacing{}}
+}{
+  \newcommand{\mainspacing}{\doublespacing{}}
+}
+
+% Use for writing in the margins.
+% \usepackage[top=1in, bottom=1in, left=1in, right=3in]{geometry}
+
+\input{content}
+
+%%% Local Variables:
+%%% mode: LaTeX
+%%% TeX-master: t
+%%% TeX-command-extra-options: "-shell-escape --enable-write18 --synctex=1"
+%%% End:
