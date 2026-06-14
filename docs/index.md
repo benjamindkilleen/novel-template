@@ -34,7 +34,6 @@ scrolling through chapters, and your facts stay consistent as the book grows.
   economy, religion — and their hard limits.
 - **[Timeline](timeline.md)** — history before page one, plus the order of
   events in the story.
-- **[Glossary](glossary.md)** — invented terms, names, and how to spell them.
 
 !!! note "Linking between pages"
     Use wikilinks — `[[maren]]`, `[[the-harbor-village]]` — and they resolve to

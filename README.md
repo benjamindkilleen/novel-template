@@ -47,8 +47,8 @@ make word
 ## The worldbuilding docs (Markdown + MkDocs)
 
 The `docs/` folder is your **story bible** — synopsis & outline, characters,
-locations, factions, world rules, timeline, and glossary. Preview it as a
-searchable website (like a Python docsite).
+locations, factions, world rules, and timeline. Preview it as a searchable
+website (like a Python docsite).
 
 Dependencies are managed with [uv](https://docs.astral.sh/uv/). Install uv
 once (`curl -LsSf https://astral.sh/uv/install.sh | sh`), then:
