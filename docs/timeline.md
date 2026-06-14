@@ -1,3 +1,8 @@
+---
+title: Timeline
+tags: [story]
+---
+
 # Timeline
 
 Two timelines, kept separate so you don't confuse backstory with plot.

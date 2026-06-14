@@ -1,11 +1,9 @@
-# Characters
-
-One section per character. Copy the template for each new entry. Lead with the
-protagonists, then supporting cast, then minor names.
-
+---
+title: Maren
+tags: [character, protagonist]
 ---
 
-## Maren
+# Maren
 
 !!! abstract "At a glance"
     - **Role:** Protagonist
@@ -20,37 +18,9 @@ protagonists, then supporting cast, then minor names.
 
 **Voice / mannerisms:** Clipped speech, counts under her breath when anxious.
 
-**Relationships:** _see [Factions](factions.md) and other character entries._
+**Relationships:** _Grew up among the families of [[the-harbor-village]]; wary of
+[[the-net-menders]]._
 
 **Secrets:** What the reader (and other characters) don't yet know.
 
 **Arc summary:** Where she starts → what breaks her open → where she ends.
-
----
-
-## Character Template
-
-Copy this block for each new character.
-
-```
-## Name
-
-!!! abstract "At a glance"
-    - **Role:**
-    - **Age / appearance:**
-    - **First appears:**
-
-**Want (external goal):**
-
-**Need (internal arc):**
-
-**Flaw / wound:**
-
-**Voice / mannerisms:**
-
-**Relationships:**
-
-**Secrets:**
-
-**Arc summary:**
-```

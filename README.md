@@ -67,5 +67,10 @@ make docs-serve     # live preview
 make docs-build     # static site -> site/
 ```
 
-Edit the Markdown files in `docs/`; the preview reloads live. Add new pages to
-the `nav:` section of `mkdocs.yml`.
+It works like a wiki: one Markdown page per topic, organized into folders
+(`characters/`, `locations/`, `factions/`, `world/`). The sidebar navigation is
+built automatically from the folder structure, so **adding a page is just
+dropping a `.md` file into a folder** — no `mkdocs.yml` to edit. Cross-link pages
+with wikilinks (`[[maren]]`), tag them in front matter (`tags: [character]`) to
+browse by the Tags page, and use the search box for everything else. The preview
+reloads live as you edit.

@@ -24,6 +24,7 @@ theme:
     - navigation.tracking
     - navigation.top
     - navigation.sections
+    - navigation.indexes
     - toc.integrate
     - search.suggest
     - search.highlight
@@ -40,15 +41,11 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
 
+# No `nav:` here on purpose. The navigation is built automatically from the
+# folder structure by the awesome-nav plugin, so adding a page is just dropping
+# a Markdown file into docs/. Top-level order is pinned in docs/.nav.yml.
 plugins:
   - search
-
-nav:
-  - Home: index.md
-  - Synopsis & Outline: outline.md
-  - Characters: characters.md
-  - Locations: locations.md
-  - Factions & Organizations: factions.md
-  - World & Systems: world.md
-  - Timeline: timeline.md
-  - Glossary: glossary.md
+  - tags
+  - roamlinks
+  - awesome-nav

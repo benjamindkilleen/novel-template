@@ -1,0 +1,14 @@
+# Top-level order for the story-bible wiki. Folders below sort their own pages
+# alphabetically by default (override with a .nav.yml inside the folder).
+# `append_unmatched` tacks any new top-level file onto the end automatically.
+append_unmatched: true
+nav:
+  - index.md
+  - characters
+  - locations
+  - factions
+  - world
+  - outline.md
+  - timeline.md
+  - glossary.md
+  - tags.md

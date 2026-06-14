@@ -1,3 +1,8 @@
+---
+title: Synopsis & Outline
+tags: [story]
+---
+
 # Synopsis & Outline
 
 ## Logline

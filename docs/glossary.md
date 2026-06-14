@@ -1,3 +1,8 @@
+---
+title: Glossary
+tags: [reference]
+---
+
 # Glossary
 
 Invented terms, proper nouns, and their canonical spellings. Keep this

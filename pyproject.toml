@@ -2,9 +2,11 @@
 name = "novel-worldbuilding-docs"
 version = "0.1.0"
 description = "Worldbuilding story-bible site for the novel (MkDocs)."
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = [
-    "mkdocs-material>=9.5",
+    "mkdocs-material>=9.6",
+    "mkdocs-awesome-nav>=3",
+    "mkdocs-roamlinks-plugin",
 ]
 
 # This project file only manages the docs site (docs/). The manuscript itself
