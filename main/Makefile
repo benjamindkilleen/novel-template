@@ -12,6 +12,9 @@ CUDA        ?= auto
 AUDIO_ENV   ?= novel-audio
 CONDA       ?= mamba
 AUDIO_BUILD = audio-build
+# conda needs --no-capture-output to stream audiblez progress live; mamba 2.x
+# streams by default and rejects the flag (exec: --: invalid option).
+RUN_STREAM  = $(if $(filter conda,$(CONDA)),--no-capture-output,)
 
 pdf:
 	pdflatex main.tex
@@ -57,7 +60,7 @@ audio-epub:
 
 # Narrate the book into a chaptered .m4b audiobook with Kokoro, offline.
 audio: audio-epub
-	CUDA=$(CUDA) $(CONDA) run --no-capture-output -n $(AUDIO_ENV) \
+	CUDA=$(CUDA) $(CONDA) run $(RUN_STREAM) -n $(AUDIO_ENV) \
 		bash scripts/audiobook.sh $(AUDIO_BUILD)/audio.epub "$(VOICE)" "$(SPEED)" "${TITLE} by ${AUTHOR}.m4b"
 
 clean:
