@@ -88,9 +88,18 @@ def chunk_text(text: str, max_chars: int = 300):
     return chunks
 
 
+def save_wav(out_wav, audio, sr):
+    """Write a (channels, frames) tensor to WAV. Uses soundfile rather than
+    torchaudio.save: torch>=2.8 routes save through torchcodec (an extra,
+    FFmpeg-version-coupled dep), so soundfile is the portable path here."""
+    import soundfile as sf
+
+    data = audio.detach().cpu().numpy().T  # soundfile wants (frames, channels)
+    sf.write(str(out_wav), data, sr)
+
+
 def synth_chapter(model, text, out_wav, exaggeration, cfg, voice_sample):
     import torch
-    import torchaudio
 
     sr = model.sr
     gap = torch.zeros(1, int(0.30 * sr))  # pause between chunks
@@ -112,7 +121,7 @@ def synth_chapter(model, text, out_wav, exaggeration, cfg, voice_sample):
     if not pieces:
         return 0.0
     audio = torch.cat(pieces, dim=1)
-    torchaudio.save(str(out_wav), audio, sr)
+    save_wav(out_wav, audio, sr)
     return audio.shape[1] / sr  # seconds
 
 
@@ -132,8 +141,10 @@ def build_m4b(wavs, durations, titles, out_path, cover, bitrate, workdir):
         start_ms = end_ms
     meta.write_text("\n".join(lines) + "\n")
 
-    cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(concat_list),
-           "-i", str(meta)]
+    # ffmpeg runs with cwd=workdir, so reference these by name (concat.txt lists
+    # the per-chapter wavs by bare filename, which only resolve from workdir).
+    cmd = ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", concat_list.name,
+           "-i", meta.name]
     if cover:
         cmd += ["-i", str(cover)]
     cmd += ["-map", "0:a", "-map_metadata", "1"]

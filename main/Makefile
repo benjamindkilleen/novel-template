@@ -73,8 +73,12 @@ else
 	# omit setuptools, and setuptools>=81 dropped pkg_resources, so pin below 81.
 	$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" chatterbox-tts ebooklib beautifulsoup4 resemble-perth "setuptools<81"'
 	# --force-reinstall --no-deps overrides chatterbox's torch==2.6 pin (which otherwise
-	# caps --upgrade) so a newer-GPU CUDA build actually replaces the bundled one.
+	# caps --upgrade) so a newer-GPU CUDA build actually replaces the bundled one. The
+	# second (with-deps) pass backfills the matching nvidia-*-cu12 runtime libs the
+	# new torch needs (e.g. libcufile.so.0) — without it CUDA import fails. Needed for
+	# Blackwell (RTX 50-series, sm_120): use TORCH_INDEX=.../whl/cu128.
 	$(if $(TORCH_INDEX),$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" --force-reinstall --no-deps torch torchaudio --index-url $(TORCH_INDEX)')
+	$(if $(TORCH_INDEX),$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" torch torchaudio --index-url $(TORCH_INDEX)')
 	# Pre-fetch the Chatterbox model so narration runs offline (load on CPU just to populate the cache).
 	-$(CONDA) run -n $(AUDIO_ENV) python -c "from chatterbox.tts import ChatterboxTTS; ChatterboxTTS.from_pretrained(device='cpu')"
 endif
