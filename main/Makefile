@@ -72,7 +72,9 @@ else
 	# setuptools<81: resemble-perth (watermarker) imports pkg_resources at load; uv envs
 	# omit setuptools, and setuptools>=81 dropped pkg_resources, so pin below 81.
 	$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" chatterbox-tts ebooklib beautifulsoup4 resemble-perth "setuptools<81"'
-	$(if $(TORCH_INDEX),$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" --upgrade torch torchaudio --index-url $(TORCH_INDEX)')
+	# --force-reinstall --no-deps overrides chatterbox's torch==2.6 pin (which otherwise
+	# caps --upgrade) so a newer-GPU CUDA build actually replaces the bundled one.
+	$(if $(TORCH_INDEX),$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" --force-reinstall --no-deps torch torchaudio --index-url $(TORCH_INDEX)')
 	# Pre-fetch the Chatterbox model so narration runs offline (load on CPU just to populate the cache).
 	-$(CONDA) run -n $(AUDIO_ENV) python -c "from chatterbox.tts import ChatterboxTTS; ChatterboxTTS.from_pretrained(device='cpu')"
 endif
