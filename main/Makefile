@@ -22,6 +22,10 @@ EXAGGERATION ?= 0.5
 CFG          ?= 0.5
 VOICE_SAMPLE ?=
 COVER        ?=
+# Newer GPUs need a matching CUDA torch build (the default wheel lags). e.g. for
+# an RTX 50-series (Blackwell, sm_120):
+#   make audio-install TORCH_INDEX=https://download.pytorch.org/whl/cu128
+TORCH_INDEX  ?=
 # Kokoro knobs.
 VOICE        ?= af_heart
 SPEED        ?= 1.0
@@ -65,7 +69,10 @@ ifeq ($(MODEL),kokoro)
 	# Pre-fetch Kokoro model + default voice (tolerate API drift: first `make audio` can be online).
 	-$(CONDA) run -n $(AUDIO_ENV) python -c "from kokoro import KPipeline; p=KPipeline(lang_code='a'); list(p('hello', voice='$(VOICE)'))"
 else
-	$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" chatterbox-tts ebooklib beautifulsoup4'
+	# setuptools<81: resemble-perth (watermarker) imports pkg_resources at load; uv envs
+	# omit setuptools, and setuptools>=81 dropped pkg_resources, so pin below 81.
+	$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" chatterbox-tts ebooklib beautifulsoup4 resemble-perth "setuptools<81"'
+	$(if $(TORCH_INDEX),$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" --upgrade torch torchaudio --index-url $(TORCH_INDEX)')
 	# Pre-fetch the Chatterbox model so narration runs offline (load on CPU just to populate the cache).
 	-$(CONDA) run -n $(AUDIO_ENV) python -c "from chatterbox.tts import ChatterboxTTS; ChatterboxTTS.from_pretrained(device='cpu')"
 endif
