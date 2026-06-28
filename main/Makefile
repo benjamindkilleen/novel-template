@@ -17,11 +17,17 @@ AUDIO_ENV    ?= novel-$(MODEL)
 CONDA        ?= mamba
 AUDIO_BUILD  = audio-build
 # Chatterbox knobs: exaggeration 0-1 (higher = more expressive), cfg 0-1
-# (lower = slower/more deliberate; pair a low cfg with high exaggeration).
+# (lower = slower/more deliberate pacing), temperature (lower = steadier prosody,
+# fewer question-like rises). Chatterbox has NO preset voices — set VOICE_SAMPLE
+# to a short clean WAV to pick the narrator's voice/gender (zero-shot clone).
 EXAGGERATION ?= 0.5
-CFG          ?= 0.5
-VOICE_SAMPLE ?=
+CFG          ?= 0.3
+TEMPERATURE  ?= 0.7
+VOICE_SAMPLE ?= voices/narrator.wav
 COVER        ?=
+# `make audio-sample` narrates just a slice for fast voice/tuning A/B.
+SAMPLE_CHAPTERS ?= 1
+SAMPLE_SKIP     ?= 0
 # Newer GPUs need a matching CUDA torch build (the default wheel lags). e.g. for
 # an RTX 50-series (Blackwell, sm_120):
 #   make audio-install TORCH_INDEX=https://download.pytorch.org/whl/cu128
@@ -101,10 +107,23 @@ else
 	$(CONDA) run $(RUN_STREAM) -n $(AUDIO_ENV) \
 		python scripts/narrate_chatterbox.py --epub $(AUDIO_BUILD)/audio.epub \
 		--out "${TITLE} by ${AUTHOR}.m4b" --cuda $(CUDA) --build-dir $(AUDIO_BUILD) \
-		--exaggeration $(EXAGGERATION) --cfg $(CFG) \
+		--exaggeration $(EXAGGERATION) --cfg $(CFG) --temperature $(TEMPERATURE) \
 		$(if $(VOICE_SAMPLE),--voice-sample "$(VOICE_SAMPLE)",) \
 		$(if $(COVER),--cover "$(COVER)",)
 endif
+
+# Quick Chatterbox tuning: narrate only SAMPLE_CHAPTERS chapter(s) (after skipping
+# SAMPLE_SKIP) to "${TITLE} sample.m4b" so you can A/B voice/cfg/temperature fast.
+#   make audio-sample VOICE_SAMPLE=narrator.wav CFG=0.25 TEMPERATURE=0.6
+audio-sample: audio-epub
+	HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTORCH_ENABLE_MPS_FALLBACK=1 \
+	$(CONDA) run $(RUN_STREAM) -n $(AUDIO_ENV) \
+		python scripts/narrate_chatterbox.py --epub $(AUDIO_BUILD)/audio.epub \
+		--out "${TITLE} sample.m4b" --cuda $(CUDA) --build-dir $(AUDIO_BUILD) \
+		--exaggeration $(EXAGGERATION) --cfg $(CFG) --temperature $(TEMPERATURE) \
+		--skip $(SAMPLE_SKIP) --limit $(SAMPLE_CHAPTERS) \
+		$(if $(VOICE_SAMPLE),--voice-sample "$(VOICE_SAMPLE)",) \
+		$(if $(COVER),--cover "$(COVER)",)
 
 clean:
 	rm -rf _region_.* auto *.aux *.docx *.log *.out *.pdf *.toc *.rtf *.pages *.epub *.html *.synctex.gz *.fls *.fdb_latexmk *.m4b audio-build

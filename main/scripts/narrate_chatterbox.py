@@ -98,13 +98,13 @@ def save_wav(out_wav, audio, sr):
     sf.write(str(out_wav), data, sr)
 
 
-def synth_chapter(model, text, out_wav, exaggeration, cfg, voice_sample):
+def synth_chapter(model, text, out_wav, exaggeration, cfg, temperature, voice_sample):
     import torch
 
     sr = model.sr
     gap = torch.zeros(1, int(0.30 * sr))  # pause between chunks
     pieces = []
-    kwargs = dict(exaggeration=exaggeration, cfg_weight=cfg)
+    kwargs = dict(exaggeration=exaggeration, cfg_weight=cfg, temperature=temperature)
     if voice_sample:
         kwargs["audio_prompt_path"] = voice_sample
     chunks = chunk_text(text)
@@ -163,24 +163,35 @@ def main() -> int:
     ap.add_argument("--epub", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
     ap.add_argument("--exaggeration", type=float, default=0.5)
-    ap.add_argument("--cfg", type=float, default=0.5)
+    ap.add_argument("--cfg", type=float, default=0.3)
+    ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--voice-sample", default="")
     ap.add_argument("--cover", default="")
     ap.add_argument("--cuda", default="auto", help="auto|1|0")
     ap.add_argument("--bitrate", default="96k")
     ap.add_argument("--build-dir", type=Path, default=None)
+    ap.add_argument("--skip", type=int, default=0, help="skip the first N chapters")
+    ap.add_argument("--limit", type=int, default=0, help="narrate at most N chapters (0 = all)")
     args = ap.parse_args()
 
     from chatterbox.tts import ChatterboxTTS
 
     device = pick_device(args.cuda)
-    log(f"loading Chatterbox on {device} "
-        f"(exaggeration={args.exaggeration}, cfg={args.cfg})")
+    log(f"loading Chatterbox on {device} (exaggeration={args.exaggeration}, "
+        f"cfg={args.cfg}, temperature={args.temperature}, "
+        f"voice={'clone' if args.voice_sample else 'default'})")
     model = ChatterboxTTS.from_pretrained(device=device)
 
     chapters = read_chapters(args.epub)
     if not chapters:
         log("no chapters found in epub")
+        return 1
+    if args.skip:
+        chapters = chapters[args.skip:]
+    if args.limit:
+        chapters = chapters[:args.limit]
+    if not chapters:
+        log("no chapters left after --skip/--limit")
         return 1
     log(f"{len(chapters)} chapters")
 
@@ -193,7 +204,7 @@ def main() -> int:
         out_wav = workdir / f"ch{idx:03d}.wav"
         log(f"chapter {idx}/{len(chapters)}: {title!r} ({len(text)} chars)")
         dur = synth_chapter(model, text, out_wav, args.exaggeration, args.cfg,
-                            voice_sample)
+                            args.temperature, voice_sample)
         if dur <= 0:
             log(f"  chapter {idx} produced no audio; skipping")
             continue
