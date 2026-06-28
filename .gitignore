@@ -311,6 +311,8 @@ main/*.pdf
 main/*.docx
 main/*.epub
 main/*.pages
+main/*.m4b
+main/audio-build/
 .DS_Store
 
 # MkDocs worldbuilding site

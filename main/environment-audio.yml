@@ -1,0 +1,10 @@
+name: novel-audio
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - ffmpeg
+  - libsndfile
+  - pip
+# espeak-ng is installed by `make audio-install` per-OS: Homebrew on macOS
+# (conda-forge has no reliable osx-arm64 build), conda-forge on Linux.

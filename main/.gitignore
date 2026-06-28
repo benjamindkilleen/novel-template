@@ -314,3 +314,8 @@ TSWLatexianTemp*
 #*Notes.bib
 
 main/*.pdf
+
+# Audiobook build (make audio)
+audio-build/
+*.m4b
+audio.epub
