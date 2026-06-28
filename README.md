@@ -36,30 +36,33 @@ From `main/`:
   Uses `pandoc` — install from [pandoc.org](https://pandoc.org/installing.html).
 - `make rtf` — RTF via `latex2rtf` (`brew install latex2rtf`).
 - `make epub` — EPUB for e-readers.
-- `make audio-install` — one-time setup for the audiobook: creates a `novel-audio`
-  [mamba](https://mamba.readthedocs.io/)/conda env (Python + `ffmpeg`),
-  `uv pip install audiblez espeakng-loader` (the loader bundles the `espeak-ng`
-  speech library, so no system install is needed), then pre-downloads the Kokoro
-  voice model. Needs mamba/conda + [uv](https://docs.astral.sh/uv/).
+- `make audio-install` — one-time setup for the audiobook: creates a
+  `novel-<engine>` [mamba](https://mamba.readthedocs.io/)/conda env (Python +
+  `ffmpeg`), `uv pip install`s the engine's deps, then pre-downloads the voice
+  model. Needs mamba/conda + [uv](https://docs.astral.sh/uv/). Run it once per
+  engine you use (`make audio-install`, `make audio-install MODEL=kokoro`).
 - `make audio` — narrate the book into a chaptered `.m4b` audiobook,
-  `TITLE by AUTHOR.m4b`, using the open-source
-  [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) TTS model (Apache-2.0)
-  via [audiblez](https://github.com/santinic/audiblez). Override voice/speed:
-  `make audio VOICE=af_sky SPEED=1.1`. Voices: `af_heart` (default, US female),
-  `af_sky`, `am_michael` (US male), `bf_emma`/`bm_george` (British). The
-  `\todo{}`, `summary`, and `\scene` markers are stripped from the narration.
+  `TITLE by AUTHOR.m4b`. Two engines via `MODEL`:
+  - **`chatterbox`** (default) — [Chatterbox](https://github.com/resemble-ai/chatterbox)
+    (Resemble AI, MIT): expressive, with an `EXAGGERATION` knob (monotone →
+    dramatic) and optional voice cloning. `make audio EXAGGERATION=0.7 CFG=0.3`
+    for more drama; `make audio VOICE_SAMPLE=narrator.wav` to clone a reference clip.
+  - **`kokoro`** — [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M)
+    (Apache-2.0) via [audiblez](https://github.com/santinic/audiblez): tiny and
+    fast but flatter. `make audio MODEL=kokoro VOICE=af_sky SPEED=1.1`.
+
+  The `\todo{}`, `summary`, and `\scene` markers are stripped from the narration.
 - `make clean` — remove build artifacts.
 
-**Runs anywhere — no GPU required.** Kokoro-82M is tiny and runs on CPU; on Apple
-Silicon a full novel takes roughly an hour. On a Linux box with an NVIDIA GPU it
-runs much faster: `make audio` auto-detects the GPU (`nvidia-smi`) and passes
-`--cuda` — force it on/off with `make audio CUDA=1` / `CUDA=0`.
+**No GPU required, but it helps.** Both engines run on CPU; on a Linux box with an
+NVIDIA GPU `make audio` auto-detects it (`nvidia-smi`) for a big speedup — force
+on/off with `make audio CUDA=1` / `CUDA=0`. Chatterbox is heavier than Kokoro, so
+a GPU is recommended for full-novel runs.
 
 > **Privacy:** the audiobook is generated **fully offline** — your prose never
-> leaves the machine. The only network access is a one-time *download* of the
-> Kokoro model during `make audio-install`; `make audio` then runs with
-> `HF_HUB_OFFLINE=1` and makes zero network calls (verify by turning off Wi-Fi
-> after install and running `make audio`).
+> leaves the machine. The only network access is a one-time *download* of the TTS
+> model during `make audio-install`; `make audio` then runs with `HF_HUB_OFFLINE=1`
+> and makes zero network calls (verify by turning off Wi-Fi after install).
 
 ```bash
 cd main

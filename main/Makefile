@@ -3,18 +3,31 @@ TITLE=TITLE
 DATE=$(shell date +%Y-%m-%d)
 AUTHOR=Benjamin Killeen
 
-# Audiobook (make audio). Kokoro-82M TTS via audiblez, fully offline.
-# Portable: macOS (CPU) and Linux (CPU or CUDA GPU). CUDA=auto|1|0 (auto = use a
-# GPU when nvidia-smi is present). Override voice/speed: make audio VOICE=af_sky SPEED=1.1
-VOICE       ?= af_heart
-SPEED       ?= 1.0
-CUDA        ?= auto
-AUDIO_ENV   ?= novel-audio
-CONDA       ?= mamba
-AUDIO_BUILD = audio-build
-# conda needs --no-capture-output to stream audiblez progress live; mamba 2.x
-# streams by default and rejects the flag (exec: --: invalid option).
-RUN_STREAM  = $(if $(filter conda,$(CONDA)),--no-capture-output,)
+# Audiobook (make audio), fully offline. Two engines via MODEL:
+#   chatterbox (default) - expressive (EXAGGERATION knob), MIT, GPU-friendly
+#   kokoro               - tiny/fast 82M via audiblez, flatter prosody
+# Portable: macOS (CPU/MPS) and Linux (CPU or CUDA GPU). CUDA=auto|1|0.
+#   make audio                                  # chatterbox, default expressiveness
+#   make audio EXAGGERATION=0.7 CFG=0.3         # more dramatic, slower pacing
+#   make audio VOICE_SAMPLE=narrator.wav        # clone a reference voice
+#   make audio MODEL=kokoro VOICE=af_sky        # the old fast/flat engine
+MODEL        ?= chatterbox
+CUDA         ?= auto
+AUDIO_ENV    ?= novel-$(MODEL)
+CONDA        ?= mamba
+AUDIO_BUILD  = audio-build
+# Chatterbox knobs: exaggeration 0-1 (higher = more expressive), cfg 0-1
+# (lower = slower/more deliberate; pair a low cfg with high exaggeration).
+EXAGGERATION ?= 0.5
+CFG          ?= 0.5
+VOICE_SAMPLE ?=
+COVER        ?=
+# Kokoro knobs.
+VOICE        ?= af_heart
+SPEED        ?= 1.0
+# conda needs --no-capture-output to stream progress live; mamba 2.x streams by
+# default and rejects the flag (exec: --: invalid option).
+RUN_STREAM   = $(if $(filter conda,$(CONDA)),--no-capture-output,)
 
 pdf:
 	pdflatex main.tex
@@ -41,14 +54,21 @@ epub:
 		--metadata author="${AUTHOR}" --metadata title="${TITLE} ${DATE}"
 
 # One-time setup: create the novel-audio mamba env (python + ffmpeg), uv pip
-# install audiblez + espeakng-loader (bundles the espeak-ng lib cross-platform;
-# CUDA torch is pulled automatically on Linux), then pre-download the Kokoro voice
-# so `make audio` is fully offline. Needs mamba/conda + uv.
+# install the engine's deps (CUDA torch is pulled automatically on Linux), then
+# pre-download the model so `make audio` is fully offline. Needs mamba/conda + uv.
+# Installs for the current MODEL: `make audio-install` (chatterbox) or
+# `make audio-install MODEL=kokoro`.
 audio-install:
-	$(CONDA) env create -f environment-audio.yml || $(CONDA) env update -f environment-audio.yml
+	$(CONDA) env create -n $(AUDIO_ENV) -f environment-audio.yml || $(CONDA) env update -n $(AUDIO_ENV) -f environment-audio.yml
+ifeq ($(MODEL),kokoro)
 	$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" audiblez espeakng-loader'
 	# Pre-fetch Kokoro model + default voice (tolerate API drift: first `make audio` can be online).
 	-$(CONDA) run -n $(AUDIO_ENV) python -c "from kokoro import KPipeline; p=KPipeline(lang_code='a'); list(p('hello', voice='$(VOICE)'))"
+else
+	$(CONDA) run -n $(AUDIO_ENV) sh -c 'uv pip install --python "$$CONDA_PREFIX/bin/python" chatterbox-tts ebooklib beautifulsoup4'
+	# Pre-fetch the Chatterbox model so narration runs offline (load on CPU just to populate the cache).
+	-$(CONDA) run -n $(AUDIO_ENV) python -c "from chatterbox.tts import ChatterboxTTS; ChatterboxTTS.from_pretrained(device='cpu')"
+endif
 
 # Build the audio EPUB: same source as `epub`, but the audio.lua filter strips
 # \todo notes, summary blocks, and \scene "#" markers from the narration.
@@ -58,10 +78,20 @@ audio-epub:
 		--lua-filter=styles/audio.lua \
 		--metadata author="${AUTHOR}" --metadata title="${TITLE}"
 
-# Narrate the book into a chaptered .m4b audiobook with Kokoro, offline.
+# Narrate the book into a chaptered .m4b audiobook, offline (engine = MODEL).
 audio: audio-epub
+ifeq ($(MODEL),kokoro)
 	CUDA=$(CUDA) $(CONDA) run $(RUN_STREAM) -n $(AUDIO_ENV) \
 		bash scripts/audiobook.sh $(AUDIO_BUILD)/audio.epub "$(VOICE)" "$(SPEED)" "${TITLE} by ${AUTHOR}.m4b"
+else
+	HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTORCH_ENABLE_MPS_FALLBACK=1 \
+	$(CONDA) run $(RUN_STREAM) -n $(AUDIO_ENV) \
+		python scripts/narrate_chatterbox.py --epub $(AUDIO_BUILD)/audio.epub \
+		--out "${TITLE} by ${AUTHOR}.m4b" --cuda $(CUDA) --build-dir $(AUDIO_BUILD) \
+		--exaggeration $(EXAGGERATION) --cfg $(CFG) \
+		$(if $(VOICE_SAMPLE),--voice-sample "$(VOICE_SAMPLE)",) \
+		$(if $(COVER),--cover "$(COVER)",)
+endif
 
 clean:
 	rm -rf _region_.* auto *.aux *.docx *.log *.out *.pdf *.toc *.rtf *.pages *.epub *.html *.synctex.gz *.fls *.fdb_latexmk *.m4b audio-build
