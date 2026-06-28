@@ -6,5 +6,5 @@ dependencies:
   - ffmpeg
   - libsndfile
   - pip
-# espeak-ng is installed by `make audio-install` per-OS: Homebrew on macOS
-# (conda-forge has no reliable osx-arm64 build), conda-forge on Linux.
+# espeak-ng is NOT packaged on conda-forge. `make audio-install` instead pip-installs
+# `espeakng-loader`, which bundles the espeak-ng shared library cross-platform.

@@ -37,10 +37,10 @@ From `main/`:
 - `make rtf` — RTF via `latex2rtf` (`brew install latex2rtf`).
 - `make epub` — EPUB for e-readers.
 - `make audio-install` — one-time setup for the audiobook: creates a `novel-audio`
-  [mamba](https://mamba.readthedocs.io/)/conda env (Python + `ffmpeg`), installs
-  `espeak-ng` (Homebrew on macOS, conda on Linux), `uv pip install audiblez`, then
-  pre-downloads the Kokoro voice model. Needs mamba/conda + [uv](https://docs.astral.sh/uv/)
-  (and Homebrew on macOS).
+  [mamba](https://mamba.readthedocs.io/)/conda env (Python + `ffmpeg`),
+  `uv pip install audiblez espeakng-loader` (the loader bundles the `espeak-ng`
+  speech library, so no system install is needed), then pre-downloads the Kokoro
+  voice model. Needs mamba/conda + [uv](https://docs.astral.sh/uv/).
 - `make audio` — narrate the book into a chaptered `.m4b` audiobook,
   `TITLE by AUTHOR.m4b`, using the open-source
   [Kokoro-82M](https://huggingface.co/hexgrad/Kokoro-82M) TTS model (Apache-2.0)

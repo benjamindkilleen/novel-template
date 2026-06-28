@@ -12,20 +12,19 @@ VOICE="${2:?missing VOICE}"
 SPEED="${3:?missing SPEED}"
 OUTPUT="${4:?missing OUTPUT}"
 
-# --- Point Kokoro's G2P at espeak-ng (best-effort; harmless if already found) -
-case "$(uname -s)" in
-  Darwin)
-    PREFIX="$(brew --prefix espeak-ng 2>/dev/null || true)"
-    LIB="${PREFIX:+$PREFIX/lib/libespeak-ng.dylib}"
-    DATA="${PREFIX:+$PREFIX/share/espeak-ng-data}"
-    ;;
-  *)
-    LIB="$(ls "${CONDA_PREFIX:-/usr}"/lib/libespeak-ng.so* 2>/dev/null | head -1 || true)"
-    DATA="${CONDA_PREFIX:-/usr}/share/espeak-ng-data"
-    ;;
-esac
-[ -n "${LIB:-}" ] && [ -f "$LIB" ] && export PHONEMIZER_ESPEAK_LIBRARY="$LIB"
-[ -n "${DATA:-}" ] && [ -d "$DATA" ] && export ESPEAK_DATA_PATH="$DATA"
+# --- Point Kokoro's G2P at espeak-ng -----------------------------------------
+# espeak-ng is NOT on conda-forge, so we use the pip-bundled shared library from
+# espeakng-loader (cross-platform, no system/brew/apt install). Setting the env
+# vars directly avoids misaki/phonemizer API-version skew. Falls back silently to
+# any system espeak-ng already on PATH if the loader isn't importable.
+if python -c "import espeakng_loader" 2>/dev/null; then
+  eval "$(python - <<'PY'
+import espeakng_loader as e
+print(f"export PHONEMIZER_ESPEAK_LIBRARY='{e.get_library_path()}'")
+print(f"export ESPEAK_DATA_PATH='{e.get_data_path()}'")
+PY
+)"
+fi
 
 # --- Privacy: narration makes ZERO network calls (hard-fail, never reach out) --
 export HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 PYTORCH_ENABLE_MPS_FALLBACK=1
