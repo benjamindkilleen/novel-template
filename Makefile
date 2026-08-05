@@ -16,6 +16,7 @@ help:
 	@echo "  cd main && make mobile   Mobile-friendly PDF"
 	@echo "  cd main && make word     Standard manuscript .docx (Shunn)"
 	@echo "  cd main && make epub     EPUB ebook"
+	@echo "  cd main && make diff     Tracked-changes PDF vs. an earlier version"
 
 docs-install:
 	uv sync

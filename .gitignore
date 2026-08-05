@@ -322,3 +322,6 @@ site/
 .venv/
 __pycache__/
 *.pyc
+
+# latexdiff build output (make diff)
+diff-build/

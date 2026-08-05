@@ -1,3 +1,5 @@
+.PHONY: pdf mobile word rtf epub diff audio audio-epub audio-sample audio-install clean
+
 INPUT=main.tex
 TITLE=TITLE
 DATE=$(shell date +%Y-%m-%d)
@@ -63,6 +65,19 @@ epub:
 	pandoc -o "${TITLE} ${DATE}.epub" epub.tex --css=epub.css \
 		--metadata author="${AUTHOR}" --metadata title="${TITLE} ${DATE}"
 
+# Tracked-changes PDF: the current manuscript (working tree, uncommitted edits
+# included) marked up against an earlier committed version. Prompts for the
+# baseline, listing tagged versions first, then recent commits.
+#   make diff                        # pick from a menu
+#   make diff REF=v1.0-draft         # skip the menu
+#   make diff DIFFTYPE=CFONT         # color-only markup (no strikeout)
+# Tag the versions worth diffing against: git tag -a v1.0-draft -m "first draft"
+DIFFTYPE ?= UNDERLINE
+REF      ?=
+diff:
+	@INPUT="${INPUT}" TITLE="${TITLE}" AUTHOR="${AUTHOR}" \
+		DIFFTYPE="$(DIFFTYPE)" REF="$(REF)" bash scripts/diff.sh
+
 # One-time setup: create the novel-audio mamba env (python + ffmpeg), uv pip
 # install the engine's deps (CUDA torch is pulled automatically on Linux), then
 # pre-download the model so `make audio` is fully offline. Needs mamba/conda + uv.
@@ -126,4 +141,4 @@ audio-sample: audio-epub
 		$(if $(COVER),--cover "$(COVER)",)
 
 clean:
-	rm -rf _region_.* auto *.aux *.docx *.log *.out *.pdf *.toc *.rtf *.pages *.epub *.html *.synctex.gz *.fls *.fdb_latexmk *.m4b audio-build
+	rm -rf _region_.* auto *.aux *.docx *.log *.out *.pdf *.toc *.rtf *.pages *.epub *.html *.synctex.gz *.fls *.fdb_latexmk *.m4b audio-build diff-build

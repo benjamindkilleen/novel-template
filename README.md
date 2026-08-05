@@ -36,6 +36,31 @@ From `main/`:
   Uses `pandoc` — install from [pandoc.org](https://pandoc.org/installing.html).
 - `make rtf` — RTF via `latex2rtf` (`brew install latex2rtf`).
 - `make epub` — EPUB for e-readers.
+- `make diff` — **tracked-changes PDF**: the manuscript as it stands now (including
+  edits you haven't committed) marked up against an earlier version — additions
+  underlined in blue, cuts struck through in red. It asks which version to compare
+  against, listing your tags first and then recent commits:
+
+  ```
+  Tagged versions:
+      1) v1.0-draft           2026-03-14  finished first draft
+      2) v0.9-beta-readers    2026-01-08  sent to beta readers
+
+  Recent commits:
+      3) 7e11cbe              2026-08-05  tightened the harbor chapter
+  ```
+
+  Tag the versions worth diffing against, so they're always one keystroke away:
+
+  ```sh
+  git tag -a v1.0-draft -m "finished first draft"
+  ```
+
+  Skip the prompt with `make diff REF=v1.0-draft` (any git revision works —
+  a tag, branch, `HEAD~5`, or a commit hash). If long deletions look cramped,
+  `make diff DIFFTYPE=CFONT` marks changes by color alone instead of striking
+  them out. Uses `latexdiff` and `latexpand`, both of which ship with TeX Live
+  and MacTeX. Output: `TITLE by AUTHOR (diff vs REF).pdf`.
 - `make audio-install` — one-time setup for the audiobook: creates a
   `novel-<engine>` [mamba](https://mamba.readthedocs.io/)/conda env (Python +
   `ffmpeg`), `uv pip install`s the engine's deps, then pre-downloads the voice
